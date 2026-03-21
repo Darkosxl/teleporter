@@ -1,0 +1,4 @@
+-teleporter.lua is the main game running file
+-tp.lua is the character file
+-frame.lua is the 2d environment file
+-I need assets lmao i can just draw a box in the place of tp
