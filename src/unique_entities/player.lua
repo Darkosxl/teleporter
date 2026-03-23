@@ -1,3 +1,12 @@
+local function circleShape(r, segments)
+    local verts = {}
+    for i = 1, segments do
+        local angle = (2 * math.pi / segments) * (i - 1)
+        verts[i] = {x = math.cos(angle) * r, y = math.sin(angle) * r}
+    end
+    return verts
+end
+
 Player = setmetatable({}, {__index = Entity})
 Player.__index = Player
 
@@ -13,15 +22,14 @@ function Player.new(hp, speed, shape, image)
     return self
 end
 
-function Player:shoot(mousex, mousey)
+function Player:shoot(mousex, mousey, gameList)
     local direction = { x = mousex - self.x, y = mousey - self.y }
     local len = math.sqrt(direction.x * direction.x + direction.y * direction.y)
     if len > 0 then
         direction.x = direction.x / len
         direction.y = direction.y / len
     end
-    spawnBullet(1, 800, { { x = 0, y = 0 }, { x = 40, y = 0 }, { x = 40, y = 40 }, { x = 0, y = 40 } }, direction,
-        self.x + 20, self.y + 20)
+    gameList:spawnBullet(1, 800, circleShape(4, 8), direction, self.x + 20, self.y + 20)
 end
 
 function Player:getShape()

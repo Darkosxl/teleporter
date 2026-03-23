@@ -1,10 +1,9 @@
-local bullet = {}
-bullet.__index = bullet
+Bullet = {}
+Bullet.__index = Bullet
 
-activeBullets = {}
 
-function bullet.new(damage, speed, shape, direction, x, y)
-    local self = setmetatable({}, bullet)
+function Bullet.new(damage, speed, shape, direction, x, y)
+    local self = setmetatable({}, Bullet)
     self.damage    = damage
     self.speed     = speed
     self.shape     = shape
@@ -16,7 +15,7 @@ function bullet.new(damage, speed, shape, direction, x, y)
     return self
 end
 
-function bullet:getShape()
+function Bullet:getShape()
     local result = {}
     for i, v in ipairs(self.shape) do
         result[i] = {x = v.x + self.x, y = v.y + self.y}
@@ -24,7 +23,7 @@ function bullet:getShape()
     return result
 end
 
-function bullet:update(dt)
+function Bullet:update(dt)
     self.timer = self.timer + dt
     self.x = self.x + self.direction.x * self.speed * dt
     self.y = self.y + self.direction.y * self.speed * dt
@@ -35,8 +34,13 @@ function bullet:update(dt)
     end
 end
 
-function bullet:canCollide()
+function Bullet:canCollide()
     return self.timer >= 1
+end
+
+function Bullet:draw()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.circle("fill", self.x, self.y, 4)
 end
 
 
