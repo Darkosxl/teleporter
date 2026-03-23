@@ -4,7 +4,8 @@ function love.load()
     vx, vy = 0, 0
     shield_cd = 5
     shield_timer = 0
-    state = "menu"
+    state        = "menu"
+    player = Player.new(3, 20, {{0, 0}, {40, 0}, {40, 40}, {0, 40}}, nil)
 end
 
 
@@ -72,7 +73,8 @@ function love.draw()
         love.graphics.setColor(1, 1, 1)
         love.graphics.print("MAIN MENU", 350, 250)
         love.graphics.print("Press ENTER to start", 310, 290)
-    elseif state == "game" then    
+    elseif state == "game" then
+        drawHealthBar(player)
         love.graphics.setColor(0.2, 0.8, 0.4)
         love.graphics.rectangle("fill", x, y, 40, 40)
         if shield_timer > 0 then
