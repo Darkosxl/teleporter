@@ -4,12 +4,15 @@ require "src/unique_entities/player"
 require "src/unique_entities/enemy1"
 require "src/misc/healthbar"
 require "src/systems/gamelist"
+require "src/systems/rooms"
 
 function love.load()
     state    = "menu"
     player   = Player.new(3, 400, nil, nil)
+    room = Room.new({ top = true, left = true, right = true }, "boss")
     gameList = GameList.new()
     gameList:addEntity(player)
+    
 end
 
 function love.update(dt)
@@ -45,6 +48,7 @@ function love.draw()
         love.graphics.print("MAIN MENU", 350, 250)
         love.graphics.print("Press ENTER to start", 310, 290)
     elseif state == "game" then
+        room:draw()
         gameList:draw()
         drawHealthBar(player)
     end
