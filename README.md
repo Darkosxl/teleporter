@@ -17,13 +17,17 @@ The player is deliberately overpowered. The challenge is not surviving attrition
 | Move | WASD | Acceleration-based with friction |
 | Teleport | RMB | Instant blink to cursor, velocity zeroed on arrival, no cooldown |
 | Shoot | LMB | Fire bullet toward cursor |
-| Shield | Space | 1-second deflect bubble, 5-second cooldown |
+| Sweep | Space | Directional blade sweep toward cursor, 0.3s window, 5s cooldown |
 
 ### Teleport
 Zero cooldown. The player can blink anywhere on screen instantly. Primary mobility and escape tool. Bullets fired by the player have a 1-second grace period before they can collide — you cannot shoot yourself on spawn. **Teleporting onto an existing bullet counts as getting hit** — teleport is already so powerful that this tradeoff is necessary.
 
-### Shield (Deflect)
-Activating the shield while a bullet hits it reflects the bullet back. Works on both enemy bullets and your own. Window is short (1 second). Cooldown is long (5 seconds). High risk, high reward — catching a dense volley and sending it back is the intended power fantasy moment.
+### Sweep (Parry)
+A directional blade sweep toward the cursor. Covers a 120-degree arc in front of the player. Bullets caught in the sweep are reflected back the way they came at double damage. The remaining 240 degrees are wide open — you are fully vulnerable from behind while sweeping.
+
+Window is tight (0.3 seconds). Cooldown is long (5 seconds). Inspired by Sekiro's parry — it is an active, committal action, not a passive shield. You read the bullet pattern, aim the sweep, and time it. Get it right and a volley becomes a weapon. Miss and you wasted your cooldown.
+
+Visual: a crescent-moon arc that flows in from one edge (0.12s), holds full shape (0.06s), then fades out from the same edge (0.12s).
 
 ---
 
@@ -127,8 +131,8 @@ Features explicitly deferred:
 | Feature | Status |
 |---|---|
 | Player movement / teleport / shoot | Done |
-| Shield visual | Done |
-| Shield deflection (reflect bullets) | Done |
+| Sweep visual (crescent arc) | Done |
+| Sweep deflection (reflect bullets) | Done |
 | Teleport-onto-bullet collision | Not implemented |
 | SAT collision detection | Done |
 | Health bar (3 dashes) | Done |
@@ -149,7 +153,8 @@ Features explicitly deferred:
 
 - `aabb` in collision.lua is SAT, not AABB — misnamed
 - `mobilizeEnemy1()` exists but is never called; enemies don't spawn or move yet — no `update()` on Enemy1
-- Shield has no circle shape defined on the player — deflection collision won't trigger until `player.shape` is updated to a circle or a shield-specific hitbox is added
+- Sweep cooldown (`shield_cd`) is defined in `Player.new` but the decrement/check logic in `update` may be using stale names — verify
+- Sweep collision hitbox is a pie-slice polygon (`getSweepShape`), not the crescent visual — intentionally simpler
 - Wall collision is not implemented — player walks through walls freely
 - Healthbar is hardcoded to 3 dashes regardless of `max_hp`
 - Bullets collide with all entities including the player after the 1s grace period — no team/owner tracking

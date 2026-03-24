@@ -12,7 +12,8 @@ function Bullet.new(damage, speed, shape, direction, x, y)
     self.y         = y
     self.timer     = 0
     self.active    = true
-    self.type = "bullet"
+    self.type      = "bullet"
+    self.deflect_cd = 0
     return self
 end
 
@@ -25,6 +26,7 @@ function Bullet:getShape()
 end
 
 function Bullet:update(dt)
+    self.deflect_cd = math.max(0, self.deflect_cd - dt)
     self.timer = self.timer + dt
     self.x = self.x + self.direction.x * self.speed * dt
     self.y = self.y + self.direction.y * self.speed * dt
@@ -41,10 +43,17 @@ end
 
 function Bullet:draw()
     love.graphics.setColor(1, 1, 1)
-    love.graphics.circle("fill", self.x, self.y, 4)
+    local verts = {}
+    for _, v in ipairs(self.shape) do
+        table.insert(verts, v.x + self.x)
+        table.insert(verts, v.y + self.y)
+    end
+    love.graphics.polygon("fill", verts)
 end
 
-
-
-
-
+function Bullet:scale(size)
+    for _, v in ipairs(self.shape) do
+        v.x = v.x * size
+        v.y = v.y * size
+    end
+end

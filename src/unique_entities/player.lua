@@ -17,9 +17,10 @@ function Player.new(hp, speed, shape, image)
     self.y           = 300
     self.vx          = 0
     self.vy          = 0
-    self.shield_cd   = 5
-    self.shield_timer = 0
-    self.shield_active = false
+    self.sweep_cd     = 1
+    self.sweep_timer  = 0
+    self.sweep_active = false
+    self.sweep_angle   = 0
     self.type = "player"
     return self
 end
@@ -34,12 +35,15 @@ function Player:shoot(mousex, mousey, gameList)
     gameList:spawnBullet(1, 800, circleShape(4, 8), direction, self.x + 20, self.y + 20)
 end
 
-function Player:getShieldShape()
-    local verts = {}
-    local cx, cy = self.x + 20, self.y + 20
-    for i = 1, 16 do
-        local angle = (2 * math.pi / 16) * (i - 1)
-        verts[i] = {x = cx + math.cos(angle) * 36, y = cy + math.sin(angle) * 36}
+function Player:getSweepShape()
+    local cx, cy   = self.x + 20, self.y + 20
+    local R        = 70
+    local half     = math.pi / 3
+    local segments = 12
+    local verts    = {{x = cx, y = cy}}
+    for i = 0, segments do
+        local a = self.sweep_angle - half + (2 * half) * i / segments
+        table.insert(verts, {x = cx + math.cos(a) * R, y = cy + math.sin(a) * R})
     end
     return verts
 end
@@ -54,17 +58,19 @@ function Player:getShape()
 end
 
 function Player:update(dt)
-    self.shield_cd    = math.max(0, self.shield_cd - dt)
-    self.shield_timer = math.max(0, self.shield_timer - dt)
+    self.sweep_cd    = math.max(0, self.sweep_cd - dt)
+    self.sweep_timer = math.max(0, self.sweep_timer - dt)
     
-    if self.shield_timer <= 0 then
-        self.shield_active = false
+    if self.sweep_timer <= 0 then
+        self.sweep_active = false
     end
 
-    if love.keyboard.isDown("space") and self.shield_cd <= 0 then
-        self.shield_active = true
-        self.shield_timer = 1
-        self.shield_cd    = 5
+    if love.keyboard.isDown("space") and self.sweep_cd <= 0 then
+        self.sweep_active = true
+        self.sweep_timer  = 0.3
+        self.sweep_cd     = 1
+        local mx, my = love.mouse.getPosition()
+        self.sweep_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
     end
 
     if love.keyboard.isDown("d") then self.vx = self.vx + self.speed * dt end
@@ -93,11 +99,46 @@ function Player:draw()
     love.graphics.setColor(0.2, 0.8, 0.4)
     love.graphics.rectangle("fill", self.x, self.y, 40, 40)
 
-    if self.shield_timer > 0 then
-        love.graphics.setLineWidth(3)
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.circle("line", self.x + 20, self.y + 20, 36)
-        love.graphics.setLineWidth(1)
-        love.graphics.setColor(1, 1, 1)
+    if self.sweep_timer > 0 then
+        local t        = 0.3 - self.sweep_timer
+        local cx, cy   = self.x + 20, self.y + 20
+        local R        = 80
+        local r        = 80
+        local half     = math.pi / 3  -- 60 degrees
+        local segments = 24
+
+        local a_from = self.sweep_angle - half
+        local a_to   = self.sweep_angle + half
+
+        local arc_start, arc_end
+        if t < 0.12 then
+            arc_start = a_from
+            arc_end   = a_from + (t / 0.12) * (a_to - a_from)
+        elseif t < 0.18 then
+            arc_start = a_from
+            arc_end   = a_to
+        else
+            arc_start = a_from + ((t - 0.18) / 0.12) * (a_to - a_from)
+            arc_end   = a_to
+        end
+
+        -- crescent: same radius, inner center offset toward player for pointed tips
+        local ocx = cx - math.cos(self.sweep_angle) * 15
+        local ocy = cy - math.sin(self.sweep_angle) * 15
+        local verts = {}
+        for i = 0, segments do
+            local a = arc_start + (arc_end - arc_start) * i / segments
+            table.insert(verts, cx  + math.cos(a) * R)
+            table.insert(verts, cy  + math.sin(a) * R)
+        end
+        for i = segments, 0, -1 do
+            local a = arc_start + (arc_end - arc_start) * i / segments
+            table.insert(verts, ocx + math.cos(a) * r)
+            table.insert(verts, ocy + math.sin(a) * r)
+        end
+
+        love.graphics.setColor(0.9, 0.95, 1, 0.9)
+        love.graphics.polygon("fill", verts)
+        love.graphics.setColor(1, 1, 1, 1)
     end
 end
