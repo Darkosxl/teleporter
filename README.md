@@ -102,6 +102,14 @@ All enemies are present in the room when the player enters — no wave spawning.
 - No bullets yet
 - Pressure profile: TBD
 
+### Mey (Duo)
+- Always spawns as a pair — two independent entities, same skill set, own rotations
+- Cycles through 4 weapon attacks randomly: spear (fast line), pickaxe (wide arc), scythe (screen-wide curve), spinning axes (orbiting formations)
+- Moves between attacks
+- Pressure profile: overcommit position, panic teleport, tunnel vision
+- **Enemy bullets cannot hit each other**
+- See `src/unique_entities/enemy_types.md` for full details
+
 Each area introduces at least one new enemy type.
 
 ---

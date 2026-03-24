@@ -58,3 +58,68 @@ function mobilizeEnemy1(spawn_playground, num_of_enemies)
     end
     return enemies
 end
+
+local function bulletShape()
+    local verts = {}
+    for i = 1, 8 do
+        local a = (2 * math.pi / 8) * (i - 1)
+        verts[i] = {x = math.cos(a) * 3, y = math.sin(a) * 3}
+    end
+    return verts
+end
+
+function spear(x, y, target_x, target_y, gameList)
+    local dx = target_x - x
+    local dy = target_y - y
+    local len = math.sqrt(dx*dx + dy*dy)
+    if len == 0 then return end
+    local dirx, diry = dx / len, dy / len
+    local perpx, perpy = -diry, dirx
+
+    local gap    = 12
+    local speed  = 1200
+    local damage = 1
+    local dir    = {x = dirx, y = diry}
+
+    local function spawn(along, perp)
+        local bx = x + dirx * (along * gap) + perpx * (perp * gap)
+        local by = y + diry * (along * gap) + perpy * (perp * gap)
+        gameList:spawnBullet(damage, speed, bulletShape(), {x = dirx, y = diry}, bx, by)
+    end
+
+    -- Pyramid (tip points forward toward target)
+    -- Row 4 (tip):    1 bullet
+    spawn(4, 0)
+    -- Row 3:          2 bullets
+    spawn(3, -0.5)   spawn(3, 0.5)
+    -- Row 2:          3 bullets (full)
+    spawn(2, -1)      spawn(2, 0)       spawn(2, 1)
+    -- Row 1:          leftmost + rightmost only (skeleton of 5-wide)
+    spawn(1, -2)      spawn(1, 2)
+    -- Row 0 (base):   central 3 only (skeleton of 7-wide)
+    spawn(0, -1)      spawn(0, 0)       spawn(0, 1)
+
+    -- Shaft: double line of 7 behind the pyramid
+    for i = 1, 7 do
+        spawn(-i, -0.5)
+        spawn(-i,  0.5)
+    end
+end
+
+function pickaxe()
+    local bullets = {}
+    
+    return bullets
+end
+
+function scythe()
+    local bullets = {}
+    
+    return bullets
+end
+
+function axes()
+    local bullets = {}
+    
+    return bullets
+end
