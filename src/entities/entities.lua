@@ -7,5 +7,6 @@ function Entity.new(hp, speed, shape, image)
     self.speed = speed
     self.shape = shape
     self.image = image or nil
+    self.type = "entity"
     return self
 end

@@ -29,11 +29,20 @@ function GameList:update(dt)
 
         if b:canCollide() then
             for _, entity in ipairs(self.entities) do
-                local hit, _ = aabb({shape = b:getShape()}, {shape = entity:getShape()})
-                if hit then
-                    entity.hp = entity.hp - b.damage
-                    b.active  = false
-                    break
+                if entity.type == "player" and entity.shield_active then
+                    local hit = aabb({shape = b:getShape()}, {shape = entity:getShieldShape()})
+                    if hit then
+                        deflect(b, entity)
+                        b.damage = b.damage * 2
+                        break
+                    end
+                else
+                    local hit = aabb({shape = b:getShape()}, {shape = entity:getShape()})
+                    if hit then
+                        entity.hp = entity.hp - b.damage
+                        b.active  = false
+                        break
+                    end
                 end
             end
         end

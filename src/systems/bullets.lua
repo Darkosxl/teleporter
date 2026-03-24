@@ -12,6 +12,7 @@ function Bullet.new(damage, speed, shape, direction, x, y)
     self.y         = y
     self.timer     = 0
     self.active    = true
+    self.type = "bullet"
     return self
 end
 

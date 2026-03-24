@@ -19,6 +19,8 @@ function Player.new(hp, speed, shape, image)
     self.vy          = 0
     self.shield_cd   = 5
     self.shield_timer = 0
+    self.shield_active = false
+    self.type = "player"
     return self
 end
 
@@ -30,6 +32,16 @@ function Player:shoot(mousex, mousey, gameList)
         direction.y = direction.y / len
     end
     gameList:spawnBullet(1, 800, circleShape(4, 8), direction, self.x + 20, self.y + 20)
+end
+
+function Player:getShieldShape()
+    local verts = {}
+    local cx, cy = self.x + 20, self.y + 20
+    for i = 1, 16 do
+        local angle = (2 * math.pi / 16) * (i - 1)
+        verts[i] = {x = cx + math.cos(angle) * 36, y = cy + math.sin(angle) * 36}
+    end
+    return verts
 end
 
 function Player:getShape()
@@ -44,8 +56,13 @@ end
 function Player:update(dt)
     self.shield_cd    = math.max(0, self.shield_cd - dt)
     self.shield_timer = math.max(0, self.shield_timer - dt)
+    
+    if self.shield_timer <= 0 then
+        self.shield_active = false
+    end
 
     if love.keyboard.isDown("space") and self.shield_cd <= 0 then
+        self.shield_active = true
         self.shield_timer = 1
         self.shield_cd    = 5
     end

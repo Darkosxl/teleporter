@@ -128,7 +128,7 @@ Features explicitly deferred:
 |---|---|
 | Player movement / teleport / shoot | Done |
 | Shield visual | Done |
-| Shield deflection (reflect bullets) | Not implemented |
+| Shield deflection (reflect bullets) | Done |
 | Teleport-onto-bullet collision | Not implemented |
 | SAT collision detection | Done |
 | Health bar (3 dashes) | Done |
@@ -136,8 +136,20 @@ Features explicitly deferred:
 | Enemy1 AI (path generation) | Done |
 | Enemy path-following movement | Not implemented |
 | Enemy fire patterns | Not implemented |
-| Room layout (walls + gates) | Not started |
-| Room difficulty coloring | Not started |
+| Room layout (walls + gates + torii) | Done |
+| Room difficulty coloring | Done |
+| Wall collision (block movement) | Not implemented |
 | Room / level system | Not started |
 | Upgrades | Not started |
 | Bosses | Not started |
+
+---
+
+## Dev Notes
+
+- `aabb` in collision.lua is SAT, not AABB — misnamed
+- `mobilizeEnemy1()` exists but is never called; enemies don't spawn or move yet — no `update()` on Enemy1
+- Shield has no circle shape defined on the player — deflection collision won't trigger until `player.shape` is updated to a circle or a shield-specific hitbox is added
+- Wall collision is not implemented — player walks through walls freely
+- Healthbar is hardcoded to 3 dashes regardless of `max_hp`
+- Bullets collide with all entities including the player after the 1s grace period — no team/owner tracking

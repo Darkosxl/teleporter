@@ -3,6 +3,7 @@ Enemy.__index = Enemy
 
 function Enemy.new(hp, speed, shape, image)
     local self = setmetatable(Entity.new(hp, speed, shape, image), Enemy)
+    self.type = "enemy"
     return self
 end
 
