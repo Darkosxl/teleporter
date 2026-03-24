@@ -1,7 +1,7 @@
 require "src/entities/entities"
 require "src/entities/enemy"
 require "src/unique_entities/player"
-require "src/unique_entities/enemy1"
+require "src/unique_entities/mey"
 require "src/misc/healthbar"
 require "src/systems/gamelist"
 require "src/systems/rooms"
@@ -12,7 +12,9 @@ function love.load()
     room = Room.new({ top = true, left = true, right = true }, "boss")
     gameList = GameList.new()
     gameList:addEntity(player)
-    
+    local mey = Mey.new(600, 200)
+    mey.gameList = gameList
+    gameList:addEntity(mey)
 end
 
 function love.update(dt)
