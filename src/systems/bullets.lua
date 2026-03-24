@@ -38,7 +38,7 @@ function Bullet:update(dt)
 end
 
 function Bullet:canCollide()
-    return self.timer >= 1
+    return self.timer >= 0.2
 end
 
 function Bullet:draw()
