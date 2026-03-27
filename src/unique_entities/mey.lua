@@ -49,6 +49,24 @@ function Mey:draw()
     love.graphics.rectangle("fill", self.x, self.y, 30, 30)
 end
 
+-- Mey TODOs:
+-- TODO: movement — reposition between attacks (move → attack → move cycle)
+-- TODO: random attack selection — pick from spear/pickaxe/scythe/axes each cycle
+-- TODO: spawn as duo — two Meys per room, independent rotations
+-- TODO: enemy bullets cannot hit each other — needs gamelist change
+-- TODO: Mey death — remove from gamelist when hp <= 0
+--
+-- Global TODOs (playtest blockers):
+-- TODO: wall collision — player walks through walls freely
+-- TODO: room transitions — gates exist visually but don't transport player
+-- TODO: room clearing logic — detect all enemies dead, open gates
+-- TODO: bullet-on-bullet collision — stopped bullets, charge, explosion system
+-- TODO: upgrade selection UI — pick 1 of 3 after room clear
+-- TODO: permadeath / run reset — dying returns to main menu, resets state
+-- TODO: teleport-onto-bullet collision — teleporting onto a bullet counts as a hit
+-- TODO: entity-on-entity collision
+-- TODO: at least 1 boss for area 1
+
 -- Weapon patterns
 
 function spear(x, y, target_x, target_y, gameList)
@@ -83,11 +101,14 @@ function spear(x, y, target_x, target_y, gameList)
     end
 end
 
+-- TODO: pickaxe — massive sweeping arc of bullets, wide coverage, forces movement
 function pickaxe()
 end
 
+-- TODO: scythe — curved line of bullets across entire screen, unavoidable without teleport
 function scythe()
 end
 
+-- TODO: axes — multiple small circular bullet formations that orbit and spin, area denial
 function axes()
 end
