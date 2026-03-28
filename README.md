@@ -206,8 +206,10 @@ Features explicitly deferred:
 | Enemy fire patterns | Not implemented |
 | Room layout (walls + gates + torii) | Done |
 | Room difficulty coloring | Done |
-| Wall collision (entity bounds clamping) | Done |
-| Room transitions / gate logic | Not started |
+| Wall collision (Room:isWalkable + door alcoves) | Done |
+| Room clearing logic (doors open when enemies dead) | Done |
+| Room transitions / gate logic (Dungeon:passGate) | Done |
+| Dungeon generation (DFS, random rooms, boss placement) | Done |
 | Upgrade selection (pick 1 of 3) | Not started |
 | Boss fights | Not started |
 | Permadeath / run reset | Not started |
@@ -221,8 +223,8 @@ Features explicitly deferred:
 2. **Enemy fire patterns** — without bullets from enemies, there's nothing to dodge or sweep.
 3. **Enemy spawning** — `mobilizeEnemy1()` is never called. Rooms are empty.
 4. ~~**Wall collision** — player walks through walls freely.~~ Done
-5. **Room transitions** — gates exist visually but don't transport the player to the next room.
-6. **Room clearing logic** — detect when all enemies are dead, open gates.
+5. ~~**Room transitions** — gates exist visually but don't transport the player to the next room.~~ Done
+6. ~~**Room clearing logic** — detect when all enemies are dead, open gates.~~ Done
 7. **Bullet-on-bullet collision** — the stopped bullet / charge / explosion system.
 8. **Upgrade selection UI** — pick 1 of 3 after room clear (even placeholder upgrades).
 9. **Permadeath / run reset** — dying should return to main menu and reset state.
@@ -238,6 +240,8 @@ Without these, individual mechanics work but there's no game loop to test.
 - `mobilizeEnemy1()` exists but is never called; enemies don't spawn or move yet — no `update()` on Enemy1
 - Sweep cooldown names are now consistent (`sweep_cd`, `sweep_timer`, `sweep_active`)
 - Sweep collision hitbox is a pie-slice polygon (`getSweepShape`), not the crescent visual — intentionally simpler
-- Wall collision uses `Entity:clampToBounds()` — all entities clamp to their `allowed_bounds` after movement
+- Wall collision uses `Room:isWalkable()` — entities query the room before moving, door alcoves are walkable with barriers during combat
+- Room transitions via `Dungeon:passGate()` — detects player past door edge, switches currentRoom, repositions at opposite door
+- Dungeon generated via DFS with random branching, boss placed in one of 3 deepest rooms
 - Healthbar is hardcoded to 3 dashes regardless of `max_hp`
 - Bullets collide with all entities including the player after 0.2s grace period — no team/owner tracking yet

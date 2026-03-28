@@ -1,9 +1,12 @@
 Room = setmetatable({}, {__index = Room})
 Room.__index = Room
 
-local W, H        = 1900, 1200
-local WALL_T      = math.floor(H * 0.08)  -- ~96px
-local GATE_W      = 140
+ROOM_W, ROOM_H    = 1900, 1200
+ROOM_WALL_T       = math.floor(ROOM_H * 0.08)  -- ~96px
+ROOM_GATE_W       = 140
+local W, H        = ROOM_W, ROOM_H
+local WALL_T      = ROOM_WALL_T
+local GATE_W      = ROOM_GATE_W
 local FRAME_T     = 10
 local BAR_T       = 4
 local BAR_COUNT_V = 5   -- vertical bars
@@ -105,6 +108,28 @@ local function enemySpawned(self, difficulty)
     return enemies
 end
 
+-- door alcove rects: {x, y, w, h} for each direction
+local DOOR_ALCOVES = {
+    top    = { W/2 - GATE_W/2 + FRAME_T, 0,          GATE_W - 2*FRAME_T, WALL_T },
+    bottom = { W/2 - GATE_W/2 + FRAME_T, H - WALL_T, GATE_W - 2*FRAME_T, WALL_T },
+    left   = { 0,          H/2 - GATE_W/2 + FRAME_T, WALL_T, GATE_W - 2*FRAME_T },
+    right  = { W - WALL_T, H/2 - GATE_W/2 + FRAME_T, WALL_T, GATE_W - 2*FRAME_T },
+}
+
+-- thin barrier line position (blocks transition during combat)
+-- for top/bottom: a horizontal line; for left/right: a vertical line
+local BARRIER_T = FRAME_T
+local DOOR_BARRIERS = {
+    top    = { W/2 - GATE_W/2 + FRAME_T, FRAME_T,              GATE_W - 2*FRAME_T, BARRIER_T },
+    bottom = { W/2 - GATE_W/2 + FRAME_T, H - FRAME_T - BARRIER_T, GATE_W - 2*FRAME_T, BARRIER_T },
+    left   = { FRAME_T,              H/2 - GATE_W/2 + FRAME_T, BARRIER_T, GATE_W - 2*FRAME_T },
+    right  = { W - FRAME_T - BARRIER_T, H/2 - GATE_W/2 + FRAME_T, BARRIER_T, GATE_W - 2*FRAME_T },
+}
+
+local function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh)
+    return ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by
+end
+
 function Room.new(neighbours, difficulty)
     local self = setmetatable({}, Room)
     self.neighbours = neighbours or {}
@@ -114,6 +139,29 @@ function Room.new(neighbours, difficulty)
     self.state      = "active"  -- "active" or "cleared"
     self.doorOpen   = 1         -- 0 = closed, 1 = fully open
     return self
+end
+
+function Room:isWalkable(x, y, w, h)
+    -- inside main room is always walkable
+    if x >= WALL_T and x + w <= W - WALL_T and y >= WALL_T and y + h <= H - WALL_T then
+        return true
+    end
+
+    -- check if entity is in a door alcove
+    for dir, alcove in pairs(DOOR_ALCOVES) do
+        if self.neighbours[dir] and rectsOverlap(x, y, w, h, alcove[1], alcove[2], alcove[3], alcove[4]) then
+            -- door exists, check barrier
+            if self.state == "active" then
+                local bar = DOOR_BARRIERS[dir]
+                if rectsOverlap(x, y, w, h, bar[1], bar[2], bar[3], bar[4]) then
+                    return false  -- blocked by barrier during combat
+                end
+            end
+            return true  -- in alcove, no barrier (or cleared)
+        end
+    end
+
+    return false  -- in a wall, no door here
 end
 
 function Room:update(dt)

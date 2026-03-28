@@ -80,15 +80,30 @@ function Player:update(dt)
 
     self.vx = self.vx * 0.85
     self.vy = self.vy * 0.85
-    
-    self.x = self.x + self.vx
-    self.y = self.y + self.vy
-    self:clampToBounds()
+
+    local newX = self.x + self.vx
+    local newY = self.y + self.vy
+    if self.dungeon and self.dungeon.currentRoom:isWalkable(newX, self.y, self.w, self.h) then
+        self.x = newX
+    end
+    if self.dungeon and self.dungeon.currentRoom:isWalkable(self.x, newY, self.w, self.h) then
+        self.y = newY
+    end
+
+    if self.dungeon then
+        local newpos, passed = self.dungeon:passGate(self.x, self.y, self.w, self.h)
+        if passed then
+            self.x = newpos.x
+            self.y = newpos.y
+        end
+    end
 end
 
 function Player:teleport(mx, my)
-    self.x  = mx
-    self.y  = my
+    if self.dungeon and self.dungeon.currentRoom:isWalkable(mx, my, self.w, self.h) then
+        self.x  = mx
+        self.y  = my
+    end
     self.vx = 0
     self.vy = 0
 end

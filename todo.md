@@ -3,13 +3,13 @@
 ## Phase 1: Playable Loop
 The game needs to feel like a game. Kill things, move on, die, restart.
 
-- [x] Wall collision — entity bounds clamping via `Entity:clampToBounds()`
-- [ ] Enemy death — remove from gamelist when hp <= 0
-- [ ] Room clearing logic — detect all enemies dead, open gates
-- [ ] Room transitions — gates transport player to next room
+- [x] Wall collision — `Room:isWalkable()` with door alcoves + barriers
+- [x] Enemy death — `Entity:checkAlive()` sets state to "dead", GameList skips dead entities
+- [x] Room clearing logic — Dungeon checks `GameList:hasLivingEnemies()`, sets room cleared, doors open
+- [x] Room transitions — `Dungeon:passGate()` detects player at door edge, switches room, repositions
 - [ ] Permadeath / run reset — dying returns to main menu, resets all state
 - [ ] Spawn enemies per room (room config: which enemies, how many, positions)
-- [ ] 5-room area structure (rooms 1-4 normal, room 5 boss)
+- [x] Dungeon generation — DFS random rooms, random difficulty, boss placed in deepest branch
 - [ ] 2 areas (10 rooms total per run)
 - [ ] Win state — clear area 2 boss, show victory screen
 
