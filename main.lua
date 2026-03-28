@@ -5,16 +5,17 @@ require "src/unique_entities/mey"
 require "src/misc/healthbar"
 require "src/systems/gamelist"
 require "src/systems/rooms"
+require "src/systems/dungeon"
 
 function love.load()
     state    = "menu"
-    player   = Player.new(3, 400, nil, nil)
-    room = Room.new({ top = true, left = true, right = true }, "boss")
+    player   = Player.new(3, 400, nil, nil, ROOM_BOUNDS)
+    dungeon = Dungeon.new()
     gameList = GameList.new()
     gameList:addEntity(player)
-    local mey = Mey.new(600, 200)
-    mey.gameList = gameList
-    gameList:addEntity(mey)
+    --local mey = Mey.new(600, 200)
+    --mey.gameList = gameList
+    --gameList:addEntity(mey)
 end
 
 function love.update(dt)
@@ -22,6 +23,7 @@ function love.update(dt)
         updateMenu(dt)
     elseif state == "game" then
         gameList:update(dt)
+        dungeon:update(dt, gameList)
     end
 end
 
@@ -50,7 +52,7 @@ function love.draw()
         love.graphics.print("MAIN MENU", 350, 250)
         love.graphics.print("Press ENTER to start", 310, 290)
     elseif state == "game" then
-        room:draw()
+        dungeon:draw()
         gameList:draw()
         drawHealthBar(player)
     end

@@ -206,7 +206,7 @@ Features explicitly deferred:
 | Enemy fire patterns | Not implemented |
 | Room layout (walls + gates + torii) | Done |
 | Room difficulty coloring | Done |
-| Wall collision (block movement) | Not implemented |
+| Wall collision (entity bounds clamping) | Done |
 | Room transitions / gate logic | Not started |
 | Upgrade selection (pick 1 of 3) | Not started |
 | Boss fights | Not started |
@@ -220,7 +220,7 @@ Features explicitly deferred:
 1. **Enemy movement** — Enemy1 has a path but no `update()`. Nothing moves.
 2. **Enemy fire patterns** — without bullets from enemies, there's nothing to dodge or sweep.
 3. **Enemy spawning** — `mobilizeEnemy1()` is never called. Rooms are empty.
-4. **Wall collision** — player walks through walls freely.
+4. ~~**Wall collision** — player walks through walls freely.~~ Done
 5. **Room transitions** — gates exist visually but don't transport the player to the next room.
 6. **Room clearing logic** — detect when all enemies are dead, open gates.
 7. **Bullet-on-bullet collision** — the stopped bullet / charge / explosion system.
@@ -238,6 +238,6 @@ Without these, individual mechanics work but there's no game loop to test.
 - `mobilizeEnemy1()` exists but is never called; enemies don't spawn or move yet — no `update()` on Enemy1
 - Sweep cooldown names are now consistent (`sweep_cd`, `sweep_timer`, `sweep_active`)
 - Sweep collision hitbox is a pie-slice polygon (`getSweepShape`), not the crescent visual — intentionally simpler
-- Wall collision is not implemented — player walks through walls freely
+- Wall collision uses `Entity:clampToBounds()` — all entities clamp to their `allowed_bounds` after movement
 - Healthbar is hardcoded to 3 dashes regardless of `max_hp`
 - Bullets collide with all entities including the player after 0.2s grace period — no team/owner tracking yet

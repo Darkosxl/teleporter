@@ -10,11 +10,11 @@ end
 Player = setmetatable({}, {__index = Entity})
 Player.__index = Player
 
-function Player.new(hp, speed, shape, image)
-    local self = setmetatable(Entity.new(hp, speed, shape, image), Player)
+function Player.new(hp, speed, shape, image, allowed_bounds)
+    local self = setmetatable(Entity.new(hp, speed, shape, image, allowed_bounds), Player)
     self.max_hp      = hp
-    self.x           = 400
-    self.y           = 300
+    self.x           = 800
+    self.y           = 900
     self.vx          = 0
     self.vy          = 0
     self.sweep_cd     = 1
@@ -72,7 +72,7 @@ function Player:update(dt)
         local mx, my = love.mouse.getPosition()
         self.sweep_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
     end
-
+    
     if love.keyboard.isDown("d") then self.vx = self.vx + self.speed * dt end
     if love.keyboard.isDown("a") then self.vx = self.vx - self.speed * dt end
     if love.keyboard.isDown("s") then self.vy = self.vy + self.speed * dt end
@@ -80,12 +80,10 @@ function Player:update(dt)
 
     self.vx = self.vx * 0.85
     self.vy = self.vy * 0.85
-    self.x  = self.x + self.vx
-    self.y  = self.y + self.vy
-
-    local W, H = love.graphics.getDimensions()
-    self.x = math.max(0, math.min(self.x, W - 40))
-    self.y = math.max(0, math.min(self.y, H - 40))
+    
+    self.x = self.x + self.vx
+    self.y = self.y + self.vy
+    self:clampToBounds()
 end
 
 function Player:teleport(mx, my)

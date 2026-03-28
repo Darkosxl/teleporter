@@ -21,15 +21,19 @@ end
 function GameList:update(dt)
     for _, entity in ipairs(self.entities) do
         if entity.update then entity:update(dt) end
+        entity:checkAlive()
     end
 
     for i = #self.bullets, 1, -1 do
         local b = self.bullets[i]
         b:update(dt)
 
+
         if b:canCollide() then
             for _, entity in ipairs(self.entities) do
-                if entity.type == "player" and entity.sweep_active then
+                if entity.state == "dead" then
+                    goto continue
+                elseif entity.type == "player" and entity.sweep_active then
                     local hit = aabb({ shape = b:getShape() }, { shape = entity:getSweepShape() })
                     if hit and b.deflect_cd <= 0 then
                         deflect(b, entity)
@@ -46,13 +50,14 @@ function GameList:update(dt)
                         break
                     end
                 else
-                    local hit = aabb({shape = b:getShape()}, {shape = entity:getShape()})
+                    local hit = aabb({ shape = b:getShape() }, { shape = entity:getShape() })
                     if hit then
                         entity.hp = entity.hp - b.damage
                         b.active  = false
                         break
                     end
                 end
+                ::continue::
             end
         end
 
@@ -62,9 +67,18 @@ function GameList:update(dt)
     end
 end
 
+function GameList:hasLivingEnemies()
+    for _, entity in ipairs(self.entities) do
+        if entity.type ~= "player" and entity.state == "alive" then
+            return true
+        end
+    end
+    return false
+end
+
 function GameList:draw()
     for _, entity in ipairs(self.entities) do
-        if entity.draw then entity:draw() end
+        if entity.draw and entity.state == "alive" then entity:draw() end
     end
     for _, b in ipairs(self.bullets) do
         b:draw()
