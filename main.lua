@@ -4,34 +4,10 @@ require "src/unique_entities/player"
 require "src/unique_entities/mey"
 require "src/misc/healthbar"
 require "src/misc/deathscreen"
+require "src/misc/menu"
 require "src/systems/gamelist"
 require "src/systems/rooms"
 require "src/systems/dungeon"
-
-function love.load()
-    state    = "menu"
-    player   = Player.new(3, 400, nil, nil, ROOM_BOUNDS)
-    dungeon = Dungeon.new()
-    player.dungeon = dungeon
-    gameList = GameList.new()
-    gameList:addEntity(player)
-    --local mey = Mey.new(600, 200)
-    --mey.gameList = gameList
-    --gameList:addEntity(mey)
-end
-
-function love.update(dt)
-    if state == "menu" then
-        updateMenu(dt)
-    elseif state == "game" then
-        if player.state == "dead" then
-            DeathScreen:update(dt)
-        else
-            gameList:update(dt)
-            dungeon:update(dt, gameList)
-        end
-    end
-end
 
 local function resetGame()
     player   = Player.new(3, 400, nil, nil, ROOM_BOUNDS)
@@ -39,42 +15,92 @@ local function resetGame()
     player.dungeon = dungeon
     gameList = GameList.new()
     gameList:addEntity(player)
+    local mey = Mey.new(600, 200)
+    mey.gameList = gameList
+    gameList:addEntity(mey)
+    hasActiveGame = true
     DeathScreen.selected = 1
 end
 
-function updateMenu(dt)
-    if love.keyboard.isDown("return") then
-        state = "game"
+function love.load()
+    state    = "menu"
+    fontTitle  = love.graphics.newFont("assets/C&C Red Alert [INET].ttf", 72)
+    fontMenu   = love.graphics.newFont("assets/C&C Red Alert [INET].ttf", 36)
+    hasActiveGame = false
+end
+
+function love.update(dt)
+    if state == "game" and player.state ~= "dead" then
+        gameList:update(dt)
+        dungeon:update(dt, gameList)
     end
 end
 
 function love.keypressed(key)
     if key == "escape" then love.event.quit() end
-    if state == "game" and player.state == "dead" and key == "return" then
-        local choice = DeathScreen:confirm()
-        if choice == "restart" then
+
+    if state == "menu" then
+        local action = Menu:keypressed(key)
+        if action == "newgame" then
             resetGame()
-        elseif choice == "menu" then
+            state = "game"
+        elseif action == "continue" then
+            state = "game"
+        elseif action == "exit" then
+            love.event.quit()
+        end
+
+    elseif state == "game" and player.state == "dead" then
+        local action = DeathScreen:keypressed(key)
+        if action == "restart" then
             resetGame()
+        elseif action == "menu" then
             state = "menu"
+            Menu.selected = 1
         end
     end
 end
 
-function love.mousepressed(mx, my, button)
-    if button == 1 then
-        player:shoot(mx, my, gameList)
+function love.mousemoved(mx, my)
+    if state == "menu" then
+        Menu:mousemoved(mx, my)
+    elseif state == "game" and player.state == "dead" then
+        DeathScreen:mousemoved(mx, my)
     end
-    if button == 2 then
-        player:teleport(mx, my)
+end
+
+function love.mousepressed(mx, my, button)
+    if state == "menu" then
+        local action = Menu:mousepressed(mx, my, button)
+        if action == "newgame" then
+            resetGame()
+            state = "game"
+        elseif action == "continue" then
+            state = "game"
+        elseif action == "exit" then
+            love.event.quit()
+        end
+    elseif state == "game" and player.state == "dead" then
+        local action = DeathScreen:mousepressed(mx, my, button)
+        if action == "restart" then
+            resetGame()
+        elseif action == "menu" then
+            state = "menu"
+            Menu.selected = 1
+        end
+    elseif state == "game" then
+        if button == 1 then
+            player:shoot(mx, my, gameList)
+        end
+        if button == 2 then
+            player:teleport(mx, my)
+        end
     end
 end
 
 function love.draw()
     if state == "menu" then
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.print("MAIN MENU", 350, 250)
-        love.graphics.print("Press ENTER to start", 310, 290)
+        Menu:draw()
     elseif state == "game" then
         dungeon:draw()
         gameList:draw()

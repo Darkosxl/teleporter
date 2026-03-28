@@ -209,10 +209,12 @@ Features explicitly deferred:
 | Wall collision (Room:isWalkable + door alcoves) | Done |
 | Room clearing logic (doors open when enemies dead) | Done |
 | Room transitions / gate logic (Dungeon:passGate) | Done |
-| Dungeon generation (DFS, random rooms, boss placement) | Done |
+| Dungeon generation (BFS, random branching, boss placement) | Done |
+| Main menu (New Game / Continue / Exit, custom font, mouse + keyboard) | Done |
+| Death screen (Game Over overlay, restart / main menu) | Done |
+| Permadeath / run reset | Done |
 | Upgrade selection (pick 1 of 3) | Not started |
 | Boss fights | Not started |
-| Permadeath / run reset | Not started |
 | Entity-on-entity collision | Not implemented |
 
 ---
@@ -227,7 +229,7 @@ Features explicitly deferred:
 6. ~~**Room clearing logic** — detect when all enemies are dead, open gates.~~ Done
 7. **Bullet-on-bullet collision** — the stopped bullet / charge / explosion system.
 8. **Upgrade selection UI** — pick 1 of 3 after room clear (even placeholder upgrades).
-9. **Permadeath / run reset** — dying should return to main menu and reset state.
+9. ~~**Permadeath / run reset** — dying should return to main menu and reset state.~~ Done
 10. **At least 1 boss** — area 1 boss needed to test the full 5-room loop.
 
 Without these, individual mechanics work but there's no game loop to test.
@@ -242,6 +244,7 @@ Without these, individual mechanics work but there's no game loop to test.
 - Sweep collision hitbox is a pie-slice polygon (`getSweepShape`), not the crescent visual — intentionally simpler
 - Wall collision uses `Room:isWalkable()` — entities query the room before moving, door alcoves are walkable with barriers during combat
 - Room transitions via `Dungeon:passGate()` — detects player past door edge, switches currentRoom, repositions at opposite door
-- Dungeon generated via DFS with random branching, boss placed in one of 3 deepest rooms
+- Dungeon generated via BFS with random branching, boss room has single entrance, placed in one of 3 deepest rooms
+- Main menu and death screen use C&C Red Alert font, support both mouse hover and keyboard navigation
 - Healthbar is hardcoded to 3 dashes regardless of `max_hp`
 - Bullets collide with all entities including the player after 0.2s grace period — no team/owner tracking yet

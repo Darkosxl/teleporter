@@ -7,9 +7,9 @@ The game needs to feel like a game. Kill things, move on, die, restart.
 - [x] Enemy death — `Entity:checkAlive()` sets state to "dead", GameList skips dead entities
 - [x] Room clearing logic — Dungeon checks `GameList:hasLivingEnemies()`, sets room cleared, doors open
 - [x] Room transitions — `Dungeon:passGate()` detects player at door edge, switches room, repositions
-- [ ] Permadeath / run reset — dying returns to main menu, resets all state
+- [x] Permadeath / run reset — death screen overlay, restart or main menu, full state reset
 - [ ] Spawn enemies per room (room config: which enemies, how many, positions)
-- [x] Dungeon generation — DFS random rooms, random difficulty, boss placed in deepest branch
+- [x] Dungeon generation — BFS random rooms, random difficulty, boss placed in deepest branch (1 entrance only)
 - [ ] 2 areas (10 rooms total per run)
 - [ ] Win state — clear area 2 boss, show victory screen
 
@@ -56,4 +56,5 @@ Only if time allows. Not blocking Sunday ship.
 - [ ] Hit feedback (invincibility frames, screen flash)
 - [ ] Better enemy spawn placement per room
 - [ ] Difficulty scaling across rooms (enemy count, mix, stats)
-- [ ] Menu improvements (run stats, death screen)
+- [x] Main menu (New Game / Continue / Exit, C&C font, mouse hover + keyboard)
+- [x] Death screen (Game Over overlay, Start Again / Main Menu, mouse hover + keyboard)

@@ -1,17 +1,25 @@
-DeathScreen = {}
-DeathScreen.selected = 1
-DeathScreen.options = { "Start Again", "Main Menu" }
+Menu = {}
+Menu.selected = 1
 
-function DeathScreen:getOptionY(i)
-    local _, H = love.graphics.getDimensions()
-    return H / 2 + i * 50
+function Menu:getOptions()
+    if hasActiveGame then
+        return { "New Game", "Continue", "Exit" }
+    else
+        return { "New Game", "Exit" }
+    end
 end
 
-function DeathScreen:mousemoved(mx, my)
+function Menu:getOptionY(i)
+    local _, H = love.graphics.getDimensions()
+    return H / 3 + 60 + i * 50
+end
+
+function Menu:mousemoved(mx, my)
     local W = love.graphics.getDimensions()
+    local options = self:getOptions()
     local th = fontMenu:getHeight()
 
-    for i, text in ipairs(self.options) do
+    for i, text in ipairs(options) do
         local ow = fontMenu:getWidth(text)
         local ox = W / 2 - ow / 2
         local oy = self:getOptionY(i)
@@ -22,12 +30,13 @@ function DeathScreen:mousemoved(mx, my)
     end
 end
 
-function DeathScreen:mousepressed(mx, my, button)
+function Menu:mousepressed(mx, my, button)
     if button ~= 1 then return nil end
     local W = love.graphics.getDimensions()
+    local options = self:getOptions()
     local th = fontMenu:getHeight()
 
-    for i, text in ipairs(self.options) do
+    for i, text in ipairs(options) do
         local ow = fontMenu:getWidth(text)
         local ox = W / 2 - ow / 2
         local oy = self:getOptionY(i)
@@ -39,44 +48,51 @@ function DeathScreen:mousepressed(mx, my, button)
     return nil
 end
 
-function DeathScreen:confirm()
-    if self.selected == 1 then
-        return "restart"
-    else
-        return "menu"
+function Menu:confirm()
+    local options = self:getOptions()
+    local pick = options[self.selected]
+    if pick == "New Game" then
+        return "newgame"
+    elseif pick == "Continue" then
+        return "continue"
+    elseif pick == "Exit" then
+        return "exit"
     end
 end
 
-function DeathScreen:keypressed(key)
+function Menu:keypressed(key)
+    local options = self:getOptions()
+
     if key == "w" or key == "up" then
         self.selected = self.selected - 1
-        if self.selected < 1 then self.selected = #self.options end
+        if self.selected < 1 then self.selected = #options end
     elseif key == "s" or key == "down" then
         self.selected = self.selected + 1
-        if self.selected > #self.options then self.selected = 1 end
+        if self.selected > #options then self.selected = 1 end
     elseif key == "return" then
         return self:confirm()
     end
     return nil
 end
 
-function DeathScreen:draw()
+function Menu:draw()
     local W, H = love.graphics.getDimensions()
 
-    -- semi-transparent overlay
-    love.graphics.setColor(0, 0, 0, 0.7)
+    -- background
+    love.graphics.setColor(0.08, 0.08, 0.1)
     love.graphics.rectangle("fill", 0, 0, W, H)
 
-    -- GAME OVER
+    -- title
     love.graphics.setFont(fontTitle)
-    love.graphics.setColor(0.9, 0.15, 0.15)
-    local title = "GAME OVER"
+    love.graphics.setColor(0.9, 0.95, 1)
+    local title = "TELEPORTER"
     local tw = fontTitle:getWidth(title)
-    love.graphics.print(title, W / 2 - tw / 2, H / 2 - 80)
+    love.graphics.print(title, W / 2 - tw / 2, H / 3 - 50)
 
     -- options
     love.graphics.setFont(fontMenu)
-    for i, text in ipairs(self.options) do
+    local options = self:getOptions()
+    for i, text in ipairs(options) do
         if i == self.selected then
             love.graphics.setColor(1, 1, 1)
         else

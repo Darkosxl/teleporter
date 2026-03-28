@@ -14,6 +14,7 @@ function Bullet.new(damage, speed, shape, direction, x, y)
     self.active    = true
     self.type      = "bullet"
     self.deflect_cd = 0
+    self.controlled = false  -- when true, owner overrides position, skip normal movement
     return self
 end
 
@@ -28,12 +29,14 @@ end
 function Bullet:update(dt)
     self.deflect_cd = math.max(0, self.deflect_cd - dt)
     self.timer = self.timer + dt
-    self.x = self.x + self.direction.x * self.speed * dt
-    self.y = self.y + self.direction.y * self.speed * dt
+    if not self.controlled then
+        self.x = self.x + self.direction.x * self.speed * dt
+        self.y = self.y + self.direction.y * self.speed * dt
 
-    local W, H = love.graphics.getDimensions()
-    if self.x < 0 or self.x > W or self.y < 0 or self.y > H then
-        self.active = false
+        local W, H = love.graphics.getDimensions()
+        if self.x < 0 or self.x > W or self.y < 0 or self.y > H then
+            self.active = false
+        end
     end
 end
 
