@@ -44,6 +44,20 @@ function aabb(entity1, entity2)
     return true
 end
 
+function innerCircleOverlap(b1, b2)
+    local dx = b1.x - b2.x
+    local dy = b1.y - b2.y
+    local dist = math.sqrt(dx * dx + dy * dy)
+    return dist < (b1.radius + b2.radius) * 0.5
+end
+
+function outerCircleOverlap(b1, b2)
+    local dx = b1.x - b2.x
+    local dy = b1.y - b2.y
+    local dist = math.sqrt(dx * dx + dy * dy)
+    return dist < (b1.radius + b2.radius)
+end
+
 function deflect(bullet, player)
     local nx = bullet.x - player.x
     local ny = bullet.y - player.y

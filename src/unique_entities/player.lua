@@ -10,6 +10,17 @@ end
 Player = setmetatable({}, {__index = Entity})
 Player.__index = Player
 
+-- Player beam constants (same feel as Sitar)
+local P_BEAM_SPEED      = 1200
+local P_BEAM_GAP        = 24
+local P_BEAM_SPAWN_RATE = 0.04
+local P_BEAM_JITTER     = 10
+local P_BEAM_WIDTH_FLUX = 2
+local P_BEAM_SPEED_FLUX = 200
+local P_BEAM_WIDTH_MIN  = 17
+local P_BEAM_WIDTH_MAX  = 21
+local P_BEAM_DURATION   = 4.0   -- max seconds per beam
+
 function Player.new(hp, speed, shape, image, allowed_bounds)
     local self = setmetatable(Entity.new(hp, speed, shape, image, allowed_bounds), Player)
     self.max_hp      = hp
@@ -22,6 +33,13 @@ function Player.new(hp, speed, shape, image, allowed_bounds)
     self.sweep_active = false
     self.sweep_angle   = 0
     self.type = "player"
+    -- beam state
+    self.beam_active   = false
+    self.beam_timer    = 0
+    self.beam_spawn_cd = 0
+    self.beam_angle    = 0
+    self.beam_width    = 0
+    self.gameList      = nil
     return self
 end
 
@@ -32,7 +50,31 @@ function Player:shoot(mousex, mousey, gameList)
         direction.x = direction.x / len
         direction.y = direction.y / len
     end
-    gameList:spawnBullet(1, 800, circleShape(4, 8), direction, self.x + 20, self.y + 20)
+    gameList:spawnBullet(1, 800, circleShape(4, 8), direction, self.x + 20, self.y + 20, "player")
+end
+
+function Player:updateBeam(dt)
+    self.beam_spawn_cd = self.beam_spawn_cd - dt
+    while self.beam_spawn_cd <= 0 do
+        self.beam_spawn_cd = self.beam_spawn_cd + P_BEAM_SPAWN_RATE
+        local cx, cy = self.x + 20, self.y + 20
+        local angle = self.beam_angle
+        local dirx, diry = math.cos(angle), math.sin(angle)
+        local perpx, perpy = -diry, dirx
+        local w = self.beam_width + math.random(-P_BEAM_WIDTH_FLUX, P_BEAM_WIDTH_FLUX)
+        w = math.max(2, w)
+        local half = (w - 1) / 2
+        for col = 0, w - 1 do
+            local offset = (col - half) * P_BEAM_GAP
+            local lat_jitter = (math.random() * 2 - 1) * P_BEAM_JITTER
+            local fwd_jitter = (math.random() * 2 - 1) * P_BEAM_JITTER * 0.5
+            local bx = cx + perpx * (offset + lat_jitter) + dirx * fwd_jitter
+            local by = cy + perpy * (offset + lat_jitter) + diry * fwd_jitter
+            local spd = P_BEAM_SPEED + (math.random() * 2 - 1) * P_BEAM_SPEED_FLUX
+            local b = self.gameList:spawnBullet(1, spd, circleShape(4, 8), {x = dirx, y = diry}, bx, by, "player")
+            b.timer = 0.2
+        end
+    end
 end
 
 function Player:getSweepShape()
@@ -60,7 +102,7 @@ end
 function Player:update(dt)
     self.sweep_cd    = math.max(0, self.sweep_cd - dt)
     self.sweep_timer = math.max(0, self.sweep_timer - dt)
-    
+
     if self.sweep_timer <= 0 then
         self.sweep_active = false
     end
@@ -72,7 +114,27 @@ function Player:update(dt)
         local mx, my = love.mouse.getPosition()
         self.sweep_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
     end
-    
+
+    -- beam: hold E to fire, release to stop
+    if self.beam_active then
+        self.beam_timer = self.beam_timer - dt
+        if not love.keyboard.isDown("e") or self.beam_timer <= 0 then
+            self.beam_active = false
+        else
+            -- aim toward mouse
+            local mx, my = love.mouse.getPosition()
+            self.beam_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
+            self:updateBeam(dt)
+        end
+    elseif love.keyboard.isDown("e") and self.gameList then
+        self.beam_active = true
+        self.beam_timer = P_BEAM_DURATION
+        self.beam_spawn_cd = 0
+        self.beam_width = math.random(P_BEAM_WIDTH_MIN, P_BEAM_WIDTH_MAX)
+        local mx, my = love.mouse.getPosition()
+        self.beam_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
+    end
+
     if love.keyboard.isDown("d") then self.vx = self.vx + self.speed * dt end
     if love.keyboard.isDown("a") then self.vx = self.vx - self.speed * dt end
     if love.keyboard.isDown("s") then self.vy = self.vy + self.speed * dt end

@@ -28,6 +28,12 @@ function Mey.new(x, y)
     self.pickaxe_angle   = 0    -- current rotation of the whole formation
     self.pickaxe_timer   = 0    -- countdown for sweep duration
     self.pickaxe_active  = false
+    -- axe state
+    self.axe_bullets = nil
+    self.axe_offsets = nil
+    self.axe_angle   = 0
+    self.axe_timer   = 0
+    self.axe_active  = false
     return self
 end
 
@@ -41,6 +47,49 @@ function Mey:getShape()
 end
 
 function Mey:update(dt)
+    -- update axe expand if active
+    if self.axe_active then
+        self.axe_timer = self.axe_timer - dt
+        self.axe_angle = self.axe_angle + (2 * math.pi / 1.0) * dt  -- full rotation over 1s
+
+        local cx, cy = self.x + 15, self.y + 15
+        local cos_a = math.cos(self.axe_angle)
+        local sin_a = math.sin(self.axe_angle)
+        local elapsed = 1.0 - self.axe_timer
+        local scale = 1 + (elapsed / 1.0) * 1.5  -- 1x → 2.5x
+
+        if self.axe_timer <= 0 then
+            for i, b in ipairs(self.axe_bullets) do
+                if b.active then
+                    local off = self.axe_offsets[i]
+                    local rx = off.x * cos_a - off.y * sin_a
+                    local ry = off.x * sin_a + off.y * cos_a
+                    local len = math.sqrt(rx * rx + ry * ry)
+                    if len > 0 then
+                        b.direction = { x = rx / len, y = ry / len }
+                    else
+                        b.direction = { x = 0, y = -1 }
+                    end
+                    b.speed = 1800
+                    b.controlled = false
+                end
+            end
+            self.axe_active = false
+            self.axe_bullets = nil
+            self.axe_offsets = nil
+        else
+            for i, b in ipairs(self.axe_bullets) do
+                if b.active then
+                    local off = self.axe_offsets[i]
+                    local rx = off.x * cos_a - off.y * sin_a
+                    local ry = off.x * sin_a + off.y * cos_a
+                    b.x = cx + rx * scale
+                    b.y = cy + ry * scale
+                end
+            end
+        end
+    end
+
     -- update pickaxe sweep if active
     if self.pickaxe_active then
         self.pickaxe_timer = self.pickaxe_timer - dt
@@ -82,7 +131,6 @@ function Mey:update(dt)
                 end
             end
         end
-        return  -- don't attack while sweeping
     end
 
     self.attack_timer = self.attack_timer - dt
@@ -91,10 +139,13 @@ function Mey:update(dt)
         if self.gameList then
             local cx, cy = self.x + 15, self.y + 15
             local tx, ty = player.x + 20, player.y + 20
-            if math.random() < 0.5 then
+            local roll = math.random(3)
+            if roll == 1 then
                 spear(cx, cy, tx, ty, self.gameList)
-            else
+            elseif roll == 2 then
                 self:pickaxeAttack(cx, cy, tx, ty)
+            else
+                self:axeAttack(cx, cy)
             end
         end
     end
@@ -140,7 +191,7 @@ function spear(x, y, target_x, target_y, gameList)
     local function spawn(along, perp)
         local bx = x + dirx * (along * gap) + perpx * (perp * gap)
         local by = y + diry * (along * gap) + perpy * (perp * gap)
-        gameList:spawnBullet(damage, speed, bulletShape(), {x = dirx, y = diry}, bx, by)
+        gameList:spawnBullet(damage, speed, bulletShape(), {x = dirx, y = diry}, bx, by, "enemy")
     end
 
     -- Pyramid (tip points forward toward target)
@@ -217,9 +268,7 @@ function Mey:pickaxeAttack(cx, cy, tx, ty)
 
             local bx = cx + rx
             local by = cy + ry
-            self.gameList:spawnBullet(1, 0, bulletShape(), {x = 0, y = 0}, bx, by)
-            local bullets = self.gameList.bullets
-            local b = bullets[#bullets]
+            local b = self.gameList:spawnBullet(1, 0, bulletShape(), {x = 0, y = 0}, bx, by, "enemy")
             b.controlled = true
             b.timer = 0.2
 
@@ -229,10 +278,76 @@ function Mey:pickaxeAttack(cx, cy, tx, ty)
     end
 end
 
--- TODO: scythe — curved line of bullets across entire screen, unavoidable without teleport
-function scythe()
+-- Axe pixel grid (15x15) — handle bottom-left, head top-right
+local AXE_PIXELS = {
+    -- row 1: handle bottom
+    {1,1}, {2,1},
+    -- row 2
+    {1,2}, {2,2}, {3,2},
+    -- row 3
+    {2,3}, {3,3}, {4,3},
+    -- row 4: handle + right extension start
+    {4,4}, {5,4}, {6,4}, {10,4}, {11,4},
+    -- row 5
+    {4,5}, {5,5}, {6,5}, {10,5}, {11,5}, {12,5},
+    -- row 6
+    {5,6}, {6,6}, {7,6}, {8,6}, {9,6}, {10,6}, {11,6}, {12,6}, {13,6},
+    -- row 7
+    {6,7}, {7,7}, {8,7}, {9,7}, {10,7}, {11,7}, {12,7}, {13,7}, {14,7},
+    -- row 8
+    {7,8}, {8,8}, {9,8}, {10,8}, {11,8}, {12,8}, {13,8}, {14,8}, {15,8},
+    -- row 9
+    {8,9}, {9,9}, {10,9}, {11,9}, {12,9}, {13,9}, {14,9}, {15,9},
+    -- row 10: widest part of head
+    {5,10}, {6,10}, {7,10}, {8,10}, {9,10}, {10,10}, {11,10}, {12,10}, {13,10}, {14,10}, {15,10},
+    -- row 11
+    {5,11}, {6,11}, {7,11}, {8,11}, {9,11}, {10,11}, {11,11}, {12,11},
+    -- row 12
+    {6,12}, {7,12}, {8,12}, {9,12}, {10,12}, {11,12},
+    -- row 13
+    {7,13}, {8,13}, {9,13}, {10,13},
+    -- row 14
+    {8,14}, {9,14}, {10,14},
+    -- row 15: tip
+    {9,15}, {10,15},
+}
+
+function Mey:axeAttack(cx, cy)
+    local cellSize = 12
+    local pivotX, pivotY = 1, 1
+
+    self.axe_bullets = {}
+    self.axe_offsets = {}
+    self.axe_angle = 0
+    self.axe_timer = 1.0
+    self.axe_active = true
+
+    -- 6 axes evenly spaced, half the bullets per axe
+    local numAxes = 6
+    for a = 0, numAxes - 1 do
+        local rot = (2 * math.pi / numAxes) * a
+        local cos_r = math.cos(rot)
+        local sin_r = math.sin(rot)
+        local count = 0
+        for _, px in ipairs(AXE_PIXELS) do
+            count = count + 1
+            if count % 2 == 0 then goto continue end  -- skip every other pixel
+
+            local rawx = (px[1] - pivotX) * cellSize
+            local rawy = (px[2] - pivotY) * cellSize
+            local ox = rawx * cos_r - rawy * sin_r
+            local oy = rawx * sin_r + rawy * cos_r
+
+            local bx = cx + ox
+            local by = cy + oy
+            local b = self.gameList:spawnBullet(1, 0, bulletShape(), {x = 0, y = 0}, bx, by, "enemy")
+            b.controlled = true
+            b.timer = 0.2
+
+            table.insert(self.axe_bullets, b)
+            table.insert(self.axe_offsets, { x = ox, y = oy })
+            ::continue::
+        end
+    end
 end
 
--- TODO: axes — multiple small circular bullet formations that orbit and spin, area denial
-function axes()
-end

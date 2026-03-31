@@ -137,7 +137,7 @@ function Room.new(neighbours, difficulty)
     self.enemies    = enemySpawned(self, difficulty)
     self.upgrade    = {}
     self.state      = "active"  -- "active" or "cleared"
-    self.doorOpen   = 1         -- 0 = closed, 1 = fully open
+    self.doorOpen   = 0        -- 0 = closed, 1 = fully open
     return self
 end
 

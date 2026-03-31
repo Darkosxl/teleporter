@@ -2,6 +2,8 @@ require "src/entities/entities"
 require "src/entities/enemy"
 require "src/unique_entities/player"
 require "src/unique_entities/mey"
+require "src/unique_entities/sitar"
+require "src/unique_entities/odachi"
 require "src/misc/healthbar"
 require "src/misc/deathscreen"
 require "src/misc/menu"
@@ -15,9 +17,10 @@ local function resetGame()
     player.dungeon = dungeon
     gameList = GameList.new()
     gameList:addEntity(player)
-    local mey = Mey.new(600, 200)
-    mey.gameList = gameList
-    gameList:addEntity(mey)
+    player.gameList = gameList
+    local odachi = Odachi.new(900, 300)
+    odachi.gameList = gameList
+    gameList:addEntity(odachi)
     hasActiveGame = true
     DeathScreen.selected = 1
 end
