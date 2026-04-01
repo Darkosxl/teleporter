@@ -34,6 +34,11 @@ function Mey.new(x, y)
     self.axe_angle   = 0
     self.axe_timer   = 0
     self.axe_active  = false
+
+    -- teleport state
+    self.teleport_cd = math.random() * MEY_TELEPORT_CD  -- stagger initial timers
+    self.teleporting = false
+    self.teleport_alpha = 1
     return self
 end
 
@@ -149,11 +154,42 @@ function Mey:update(dt)
             end
         end
     end
+
+    self:teleportUpdate(dt)
 end
 
+function Mey:teleportUpdate(dt)
+    if self.teleporting then
+        self.teleport_alpha = self.teleport_alpha - dt * 4
+        if self.teleport_alpha <= 0 then self.teleporting = false end
+    end
+    if self.teleport_cd > 0 then
+        self.teleport_cd = self.teleport_cd - dt
+        return
+    end
+    self.teleport_cd = MEY_TELEPORT_CD
+    -- teleport to a random spot near the player (medium distance)
+    local px, py = player.x + 20, player.y + 20
+    local angle = math.random() * 2 * math.pi
+    local dist = MEY_MIN_DIST + math.random() * (MEY_MAX_DIST - MEY_MIN_DIST)
+    local bx, ex = ROOM_BOUNDS[1], ROOM_BOUNDS[2] - 30
+    local by, ey = ROOM_BOUNDS[3], ROOM_BOUNDS[4] - 30
+    local tx = math.max(bx, math.min(ex, px + math.cos(angle) * dist))
+    local ty = math.max(by, math.min(ey, py + math.sin(angle) * dist))
+    self.x, self.y = tx, ty
+    self.teleporting = true
+    self.teleport_alpha = 1
+
 function Mey:draw()
-    love.graphics.setColor(0.8, 0.2, 0.2)
-    love.graphics.rectangle("fill", self.x, self.y, 30, 30)
+    if self.teleporting then
+        love.graphics.setColor(0.8, 0.2, 0.2, self.teleport_alpha)
+        love.graphics.rectangle("fill", self.x, self.y, 30, 30)
+        love.graphics.setColor(0.8, 0.2, 0.2, 1 - self.teleport_alpha)
+        love.graphics.rectangle("fill", self.x, self.y, 30, 30)
+    else
+        love.graphics.setColor(0.8, 0.2, 0.2)
+        love.graphics.rectangle("fill", self.x, self.y, 30, 30)
+    end
 end
 
 -- Mey TODOs:

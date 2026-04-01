@@ -1,3 +1,4 @@
+require "src/entities/entities"
 require "src/systems/rooms"
 Dungeon = setmetatable({}, {__index = Dungeon})
 Dungeon.__index = Dungeon
@@ -148,6 +149,52 @@ function Dungeon:generateRooms()
     return rooms
 end
 
+function Dungeon:mobilizeRoom(gameList)
+    local room = self.currentRoom
+    if room.enemiesSpawned then return end
+    room.enemiesSpawned = true
+
+    local bx, ex = ROOM_BOUNDS[1], ROOM_BOUNDS[2]
+    local by, ey = ROOM_BOUNDS[3], ROOM_BOUNDS[4]
+    local cx = (bx + ex) / 2
+    local cy = (by + ey) / 2
+
+    if room.difficulty == "spawn" or room.difficulty == "boss" then
+        -- spawn: no enemies; boss: spawn Darkosxl
+        if room.difficulty == "boss" then
+            local boss = Darkosxl.new(cx - 60, cy - 60)
+            boss.gameList = gameList
+            gameList:addEntity(boss)
+        end
+        return
+    end
+
+    -- pick random enemy: 2 meys, 1 sitar, 2 odachis
+    local roll = math.random(5)
+    if roll <= 2 then
+        -- 2 meys
+        local m1 = Mey.new(cx - 120, cy - 15)
+        local m2 = Mey.new(cx + 90, cy - 15)
+        m1.gameList = gameList
+        m2.gameList = gameList
+        gameList:addEntity(m1)
+        gameList:addEntity(m2)
+    elseif roll <= 3 then
+        -- 1 sitar
+        local s = Sitar.new(cx - 45, cy - 45)
+        s.gameList = gameList
+        gameList:addEntity(s)
+    else
+        -- 2 odachis
+        local o1 = Odachi.new(cx - 120, cy - 35)
+        local o2 = Odachi.new(cx + 50, cy - 35)
+        o1.gameList = gameList
+        o2.gameList = gameList
+        gameList:addEntity(o1)
+        gameList:addEntity(o2)
+    end
+end
+
 function Dungeon:passGate(x, y, w, h)
     local room = self.currentRoom
     if room.state ~= "cleared" then return nil, false end
@@ -174,6 +221,7 @@ function Dungeon:passGate(x, y, w, h)
 
     -- switch room
     self.currentRoom = room.neighbours[dir]
+    self:mobilizeRoom(gameList)
 
     -- reposition at opposite door entrance (just inside the wall)
     local newpos = { x = x, y = y }

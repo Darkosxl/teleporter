@@ -33,6 +33,12 @@ local ATTACK_COOLDOWN   = 1.5    -- seconds between attacks
 
 local SIZE = 90  -- 3x mey's 30
 
+local TELEPORT_CD       = 7.0   -- seconds between sitar teleports
+local CLOSING_GAP       = 300   -- player distance that triggers sitar teleport
+local MEY_TELEPORT_CD   = 10.0  -- seconds between mey teleports
+local MEY_MIN_DIST      = 200   -- min distance from player for mey teleport
+local MEY_MAX_DIST      = 400   -- max distance from player for mey teleport
+
 local function bulletShape()
     local verts = {}
     for i = 1, 8 do
@@ -73,6 +79,11 @@ function Sitar.new(x, y)
     self.orbit_phase = "orbit"   -- "orbit" or "release"
     self.orbit_bullets = nil
     self.orbit_data = nil        -- per-bullet: angle, radius, beam_index, curve_dir
+
+    -- teleport state
+    self.teleport_cd = 0
+    self.teleporting = false
+    self.teleport_alpha = 1
     return self
 end
 
@@ -321,9 +332,44 @@ function Sitar:updateOrbit(dt)
 end
 
 ---------------------------------------------------------------------------
+-- Sitar teleport: when player closes the gap, blink to the far corner
+---------------------------------------------------------------------------
+function Sitar:tryTeleport()
+    if self.teleport_cd > 0 or self.teleporting then return end
+    local cx, cy = self.x + SIZE / 2, self.y + SIZE / 2
+    local px, py = player.x + 20, player.y + 20
+    local dx, dy = px - cx, py - cy
+    if math.sqrt(dx * dx + dy * dy) > CLOSING_GAP then return end
+    -- pick the corner farthest from the player
+    local bx1, ex1 = ROOM_BOUNDS[1], ROOM_BOUNDS[2]
+    local by1, ey1 = ROOM_BOUNDS[3], ROOM_BOUNDS[4]
+    local corners = {
+        {x = bx1,        y = by1},
+        {x = ex1 - SIZE, y = by1},
+        {x = bx1,        y = ey1 - SIZE},
+        {x = ex1 - SIZE, y = ey1 - SIZE},
+    }
+    local best_d, best = 0, nil
+    for _, c in ipairs(corners) do
+        local d = (c.x - px) ^ 2 + (c.y - py) ^ 2
+        if d > best_d then best_d, best = d, c end
+    end
+    self.x, self.y = best.x, best.y
+    self.teleport_cd = TELEPORT_CD
+    self.teleporting = true
+    self.teleport_alpha = 1
+end
+
+---------------------------------------------------------------------------
 -- Main update
 ---------------------------------------------------------------------------
 function Sitar:update(dt)
+    if self.teleporting then
+        self.teleport_alpha = self.teleport_alpha - dt * 4
+        if self.teleport_alpha <= 0 then self.teleporting = false end
+    end
+    if self.teleport_cd > 0 then self.teleport_cd = self.teleport_cd - dt end
+    self:tryTeleport()
     if self.beam_active then self:updateBeams(dt) end
     if self.orbit_active then self:updateOrbit(dt) end
 
@@ -344,6 +390,13 @@ function Sitar:update(dt)
 end
 
 function Sitar:draw()
-    love.graphics.setColor(0.2, 0.6, 0.9)
-    love.graphics.rectangle("fill", self.x, self.y, SIZE, SIZE)
+    if self.teleporting then
+        love.graphics.setColor(0.2, 0.6, 0.9, self.teleport_alpha)
+        love.graphics.rectangle("fill", self.x, self.y, SIZE, SIZE)
+        love.graphics.setColor(0.2, 0.6, 0.9, 1 - self.teleport_alpha)
+        love.graphics.rectangle("fill", self.x, self.y, SIZE, SIZE)
+    else
+        love.graphics.setColor(0.2, 0.6, 0.9)
+        love.graphics.rectangle("fill", self.x, self.y, SIZE, SIZE)
+    end
 end

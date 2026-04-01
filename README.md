@@ -222,8 +222,10 @@ Features explicitly deferred:
 | Deflected bullets become neutral (can hit anyone) | Done |
 | Player kamehameha beam (hold E) | Done |
 | Enemy1 AI (path generation) | Done |
-| Enemy path-following movement | Not implemented |
-| Enemy fire patterns | Not implemented |
+| Enemy path-following movement | Not implemented (Mey/Sitar only teleport) |
+| Enemy fire patterns | Partially done (Mey: spear/pickaxe/axe, Sitar: beams/orbit, Enemy1: none) |
+| Sitar teleport (player closes gap, 7s CD) | Done |
+| Mey teleport (random, 10s CD) | Done |
 | Sitar enemy (3 attacks, overlapping fire) | Done |
 | Room layout (walls + gates + torii) | Done |
 | Room difficulty coloring | Done |
@@ -242,16 +244,10 @@ Features explicitly deferred:
 
 ## Playtest Blockers (must implement before first full run)
 
-1. **Enemy movement** — Enemy1 has a path but no `update()`. Nothing moves.
-2. **Enemy fire patterns** — without bullets from enemies, there's nothing to dodge or sweep.
-3. **Enemy spawning** — `mobilizeEnemy1()` is never called. Rooms are empty.
-4. ~~**Wall collision** — player walks through walls freely.~~ Done
-5. ~~**Room transitions** — gates exist visually but don't transport the player to the next room.~~ Done
-6. ~~**Room clearing logic** — detect when all enemies are dead, open gates.~~ Done
-7. ~~**Bullet-on-bullet collision** — the stopped bullet / charge / explosion system.~~ Done
-8. **Upgrade selection UI** — pick 1 of 3 after room clear (even placeholder upgrades).
-9. ~~**Permadeath / run reset** — dying should return to main menu and reset state.~~ Done
-10. **At least 1 boss** — area 1 boss needed to test the full 5-room loop.
+1. **Enemy spawning** — `enemySpawned()` returns empty table. Rooms are empty.
+2. **Upgrade selection UI** — pick 1 of 3 after room clear (even placeholder upgrades).
+3. **At least 1 boss** — area 1 boss needed to test the full 5-room loop.
+4. **Enemy1 movement** — has path but no `update()`, only placeholder.
 
 Without these, individual mechanics work but there's no game loop to test.
 
