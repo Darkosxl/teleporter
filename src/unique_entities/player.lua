@@ -39,7 +39,14 @@ function Player.new(hp, speed, shape, image, allowed_bounds)
     self.beam_spawn_cd = 0
     self.beam_angle    = 0
     self.beam_width    = 0
-    self.gameList      = nil
+    self.upgrades          = {}  -- applied upgrades by key
+    -- attack slots: {{attack=Attack, cd=0, key="q"}, ...}
+    self.attacks           = {}
+    -- parry (odachi attack)
+    self.parry_active     = false
+    self.parry_timer      = 0
+    self.parry_angle      = 0
+    self.gameList         = nil
     return self
 end
 
@@ -135,6 +142,21 @@ function Player:update(dt)
         self.beam_angle = math.atan2(my - (self.y + 20), mx - (self.x + 20))
     end
 
+    -- check attack slots: fire on key press
+    for _, slot in ipairs(self.attacks) do
+        slot.cd = math.max(0, slot.cd - dt)
+        if slot.cd <= 0 and love.keyboard.isDown(slot.key) then
+            slot.cd = slot.attack.cooldown
+            slot.attack:fire(self, self.gameList)
+        end
+    end
+
+    -- parry timer
+    self.parry_timer = math.max(0, self.parry_timer - dt)
+    if self.parry_timer <= 0 then
+        self.parry_active = false
+    end
+
     if love.keyboard.isDown("d") then self.vx = self.vx + self.speed * dt end
     if love.keyboard.isDown("a") then self.vx = self.vx - self.speed * dt end
     if love.keyboard.isDown("s") then self.vy = self.vy + self.speed * dt end
@@ -168,6 +190,24 @@ function Player:teleport(mx, my)
     end
     self.vx = 0
     self.vy = 0
+end
+
+function Player:applyUpgrade(upgrade)
+    local key = upgrade.key
+    if self.upgrades[key] then return false end  -- already have it
+    self.upgrades[key] = true
+    if upgrade.apply then upgrade:apply(self) end
+    if upgrade.isAttack then
+        self:addAttack(upgrade)
+    end
+    return true
+end
+
+function Player:addAttack(attack)
+    local slotKey = PlayerAttacks.nextSlotKey(self.attacks)
+    if not slotKey then return false end
+    table.insert(self.attacks, {attack = attack, cd = 0, key = slotKey})
+    return true
 end
 
 function Player:draw()

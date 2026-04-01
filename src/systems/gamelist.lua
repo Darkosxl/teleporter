@@ -169,6 +169,37 @@ function GameList:update(dt)
         entity:checkAlive()
     end
 
+    -- Update player attack beam states
+    if self.beamStates then
+        for i = #self.beamStates, 1, -1 do
+            local state = self.beamStates[i]
+            local alive = state.fireFn(0, dt)  -- elapsed time not needed, just dt
+            if not alive then
+                table.remove(self.beamStates, i)
+            end
+        end
+    end
+
+    -- Update player controlled formations (pickaxe, axe spin)
+    if self.controlledFormations then
+        for i = #self.controlledFormations, 1, -1 do
+            local state = self.controlledFormations[i]
+            local t = state.getTime and state:getTime() or 0
+            local alive = false
+            for j, b in ipairs(state.bullets) do
+                if b.active and state.fireFn then
+                    local off = state.offsets[j]
+                    local still_alive = state.fireFn(b, off, t, dt)
+                    if still_alive then alive = true end
+                end
+            end
+            state.timer = state.timer - dt
+            if not alive or state.timer <= 0 then
+                table.remove(self.controlledFormations, i)
+            end
+        end
+    end
+
     for i = #self.bullets, 1, -1 do
         local b = self.bullets[i]
         b:update(dt)

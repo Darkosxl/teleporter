@@ -221,9 +221,9 @@ Features explicitly deferred:
 | Enemy bullets cannot hit other enemies | Done |
 | Deflected bullets become neutral (can hit anyone) | Done |
 | Player kamehameha beam (hold E) | Done |
-| Enemy1 AI (path generation) | Done |
-| Enemy path-following movement | Not implemented (Mey/Sitar only teleport) |
-| Enemy fire patterns | Partially done (Mey: spear/pickaxe/axe, Sitar: beams/orbit, Enemy1: none) |
+| Enemy1 AI (path generation) | Deprecated — not used |
+| Enemy path-following movement | Deprecated — not used |
+| Enemy fire patterns | Done (Mey: spear/pickaxe/axe, Sitar: beams/orbit, Darkosxl: rosepetals) |
 | Sitar teleport (player closes gap, 7s CD) | Done |
 | Mey teleport (random, 10s CD) | Done |
 | Sitar enemy (3 attacks, overlapping fire) | Done |
@@ -236,27 +236,35 @@ Features explicitly deferred:
 | Main menu (New Game / Continue / Exit, custom font, mouse + keyboard) | Done |
 | Death screen (Game Over overlay, restart / main menu) | Done |
 | Permadeath / run reset | Done |
-| Upgrade selection (pick 1 of 3) | Not started |
-| Boss fights | Not started |
-| Entity-on-entity collision | Not implemented |
+| Upgrade selection (pick 1 of 3, enemy-linked, pixel crawl animation) | Done |
+| Player:applyUpgrade() system (dedup by key, per-upgrade apply functions) | Done |
+## Remaining Tasks
 
----
+### Player Attack System
+- `PlayerAttacks` module — parry attack needs `Player:getParryShape()` (120° arc) + gamelist deflection check
+- Upgrade cards need to show cooldown and assigned key binding (Q, R, F, Shift, Tab...)
+- Parry deflection in gamelist: check `entity.parry_active` + `getParryShape()` the same way sweep is handled
 
-## Playtest Blockers (must implement before first full run)
+### Dead Code Cleanup
+- Remove stale upgrade fields from `Player.new()` — `attack_speed_mult`, `bullet_damage_mult`, `beam_width_bonus`, `double_beam`, `sweep_cd_bonus`, `extra_orbit`, `pierce`, `has_clone`, `cross_blast_size`, `wall_teleport`, `evasion_chance` — replaced by attack slots
+- Remove `apply` function from upgrade definitions — attacks use `isAttack` + `fire` instead
 
-1. **Enemy spawning** — `enemySpawned()` returns empty table. Rooms are empty.
-2. **Upgrade selection UI** — pick 1 of 3 after room clear (even placeholder upgrades).
-3. **At least 1 boss** — area 1 boss needed to test the full 5-room loop.
-4. **Enemy1 movement** — has path but no `update()`, only placeholder.
+### Bullets
+- `bullet.homing` — `boss_devour` sets it but nothing steers bullets yet
+- Entity-on-entity collision — bullets hitting entity body shapes (beyond hitbox)
 
-Without these, individual mechanics work but there's no game loop to test.
-
----
+### Enemies
+- `Mey:axeAttack()` — formation spins and expands but doesn't release outward when timer ends (same pattern as pickaxe)
+- Darkosxl HP display — hard to tell boss health
+- Enemy death cleanup — confirm `checkAlive()` removes dead entities from gamelist
 
 ## Dev Notes
 
 - `aabb` in collision.lua is SAT, not AABB — misnamed
-- `mobilizeEnemy1()` exists but is never called; enemies don't spawn or move yet — no `update()` on Enemy1
+- `Dungeon:mobilizeRoom(gameList)` spawns enemies on room entry — spawn: none, boss: Darkosxl, normal/hard: random {2 Meys, 1 Sitar, 2 Odachis}
+- Upgrades are enemy-linked: room clears offer 3 upgrades from that enemy's pool. Boss rooms offer boss upgrades. Applied via `player:applyUpgrade(u)` — deduplicates by `upgrade.key`, calls `upgrade:apply(player)` function.
+- Player upgrade fields (wired): `_mult`, `bullet_damage_mult`, `beam_width_bonus`, `double_beam`, `sweep_cd_bonus`
+- Player upgrade fields (dead code — fields set but nothing reads them yet): `extra_orbit`, `pierce`, `has_clone`, `cross_blast_size`, `wall_teleport`, `evasion_chance`
 - Sweep cooldown names are now consistent (`sweep_cd`, `sweep_timer`, `sweep_active`)
 - Sweep collision hitbox is a pie-slice polygon (`getSweepShape`), not the crescent visual — intentionally simpler
 - Wall collision uses `Room:isWalkable()` — entities query the room before moving, door alcoves are walkable with barriers during combat
@@ -267,4 +275,4 @@ Without these, individual mechanics work but there's no game loop to test.
 - Bullets have a faction ("player", "enemy", "neutral") — enemy bullets skip enemy entities, deflected bullets become neutral
 - Bullet grace period is 0.5s (canCollide), but controlled bullets (Mey/Sitar formations) have their timer set to 0.2 to skip the wait
 - Bullet-on-bullet uses a spatial grid (40px cells) to avoid O(n²) cost with Sitar's dense beams
-- Sitar orbit bullets are arranged tangentially along the orbit arc, not radially — each beam is a curved comet tail
+- `Dungeon:mobilizeRoom(gameList)` spawns enemies on room entry — spawn: none, boss: Darkosxl, normal/hard: random {2 Meys, 1 Sitar, 2 Odachis}

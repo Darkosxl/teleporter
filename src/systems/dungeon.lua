@@ -165,6 +165,7 @@ function Dungeon:mobilizeRoom(gameList)
             local boss = Darkosxl.new(cx - 60, cy - 60)
             boss.gameList = gameList
             gameList:addEntity(boss)
+            room.enemyType = "boss"
         end
         return
     end
@@ -179,11 +180,13 @@ function Dungeon:mobilizeRoom(gameList)
         m2.gameList = gameList
         gameList:addEntity(m1)
         gameList:addEntity(m2)
+        room.enemyType = "mey"
     elseif roll <= 3 then
         -- 1 sitar
         local s = Sitar.new(cx - 45, cy - 45)
         s.gameList = gameList
         gameList:addEntity(s)
+        room.enemyType = "sitar"
     else
         -- 2 odachis
         local o1 = Odachi.new(cx - 120, cy - 35)
@@ -192,6 +195,7 @@ function Dungeon:mobilizeRoom(gameList)
         o2.gameList = gameList
         gameList:addEntity(o1)
         gameList:addEntity(o2)
+        room.enemyType = "odachi"
     end
 end
 
