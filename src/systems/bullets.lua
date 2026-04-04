@@ -19,13 +19,17 @@ function Bullet.new(damage, speed, shape, direction, x, y)
     self.merge_count = 0
     self.neutral_timer = nil     -- countdown for stopped neutral bullets (10s)
 
-    -- cache radius from shape vertices
+    -- cache radius and pre-compute flat vertex array for drawing
     local maxR = 0
+    local flat = {}
     for _, v in ipairs(self.shape) do
         local d = math.sqrt(v.x * v.x + v.y * v.y)
         if d > maxR then maxR = d end
+        flat[#flat + 1] = v.x
+        flat[#flat + 1] = v.y
     end
-    self.radius = maxR
+    self.radius   = maxR
+    self.flatVerts = flat
 
     return self
 end
@@ -55,8 +59,7 @@ function Bullet:update(dt)
         self.y = self.y + self.direction.y * self.speed * dt
 
         if self.speed > 0 then
-            local W, H = love.graphics.getDimensions()
-            if self.x < -50 or self.x > W + 50 or self.y < -50 or self.y > H + 50 then
+            if self.x < -50 or self.x > ROOM_W + 50 or self.y < -50 or self.y > ROOM_H + 50 then
                 self.active = false
             end
         end

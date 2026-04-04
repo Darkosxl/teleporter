@@ -35,9 +35,6 @@ local SIZE = 90  -- 3x mey's 30
 
 local TELEPORT_CD       = 7.0   -- seconds between sitar teleports
 local CLOSING_GAP       = 300   -- player distance that triggers sitar teleport
-local MEY_TELEPORT_CD   = 10.0  -- seconds between mey teleports
-local MEY_MIN_DIST      = 200   -- min distance from player for mey teleport
-local MEY_MAX_DIST      = 400   -- max distance from player for mey teleport
 
 local function bulletShape()
     local verts = {}

@@ -1,6 +1,10 @@
 Mey = setmetatable({}, {__index = Enemy})
 Mey.__index = Mey
 
+local MEY_TELEPORT_CD = 10.0
+local MEY_MIN_DIST    = 200
+local MEY_MAX_DIST    = 400
+
 local function bulletShape()
     local verts = {}
     for i = 1, 8 do
@@ -179,6 +183,7 @@ function Mey:teleportUpdate(dt)
     self.x, self.y = tx, ty
     self.teleporting = true
     self.teleport_alpha = 1
+end
 
 function Mey:draw()
     if self.teleporting then

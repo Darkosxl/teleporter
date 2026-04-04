@@ -1,5 +1,9 @@
 require "src/entities/entities"
 require "src/systems/rooms"
+require "src/unique_entities/mey"
+require "src/unique_entities/sitar"
+require "src/unique_entities/odachi"
+require "src/unique_entities/darkosxl"
 Dungeon = setmetatable({}, {__index = Dungeon})
 Dungeon.__index = Dungeon
 

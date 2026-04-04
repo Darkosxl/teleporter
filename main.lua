@@ -1,3 +1,4 @@
+require "src/entities/entities"
 require "src/systems/rooms"
 require "src/entities/enemy"
 require "src/unique_entities/player"

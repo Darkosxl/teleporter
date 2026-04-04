@@ -164,7 +164,7 @@ end
 -- Main update
 ---------------------------------------------------------------------------
 function GameList:update(dt)
-    for _, entity in ipairs(self.entities) do
+    for i, entity in ipairs(self.entities) do
         if entity.update then entity:update(dt) end
         entity:checkAlive()
     end
@@ -222,14 +222,16 @@ function GameList:update(dt)
                         b.faction = "neutral"
                         break
                     end
-                    local hit2 = aabb({ shape = b:getShape() }, { shape = entity:getShape() })
+                    local hit2 = b.x + b.radius > entity.x and b.x - b.radius < entity.x + entity.w
+                              and b.y + b.radius > entity.y and b.y - b.radius < entity.y + entity.h
                     if hit2 then
                         entity.hp = entity.hp - b.damage
                         b.active  = false
                         break
                     end
                 else
-                    local hit = aabb({ shape = b:getShape() }, { shape = entity:getShape() })
+                    local hit = b.x + b.radius > entity.x and b.x - b.radius < entity.x + entity.w
+                             and b.y + b.radius > entity.y and b.y - b.radius < entity.y + entity.h
                     if hit then
                         entity.hp = entity.hp - b.damage
                         b.active  = false
